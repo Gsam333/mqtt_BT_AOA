@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+paho-mqtt==1.6.1
+numpy==1.26.4
+matplotlib==3.8.2
+sqlalchemy==2.0.15
+pyyaml==6.0.1
