@@ -1,0 +1,117 @@
+def getAoAmqtt(payload):
+    """
+    解析 AOA 数据并返回位置信息。
+
+    参数:
+    payload (str): 包含 AOA 数据的字符串。
+
+    返回:
+    dict: 包含以下键值对的字典：
+        - macid: MAC地址
+        - customdata: 用户数据
+        - rssi: 信号强度 (dBm)
+        - snr: 信噪比 (dB)
+        - azimuth: 方位角 (°)
+        - elevation: 倾角 (°)
+
+    如果解析失败，则返回 None。
+    """
+    MAXPAYLOADLEN = 82  # 定义payload最大长度
+    MINSNR = 3.0        # 信噪比阈值
+    MINRSSI = -85       # 信号强度阈值
+    MINANGLE = 20       # 仰角过滤阈值
+    UNDERANGLE = 5      # 仰角补正阈值
+
+    try:
+        strstart = 16 # 数据起始位置
+        payload = payload.strip() # 去除payload首尾空白字符
+        payloadlen = len(payload) # 计算payload总长度
+        
+        # 验证 payload 长度
+        if payloadlen != MAXPAYLOADLEN:
+            raise ValueError("无效的 payload 长度")
+            
+        if not payload.startswith('AOA='):
+            raise ValueError("无效的 AOA 前缀")
+
+        customdatalen = 36 + 14  
+        
+        # MAC地址提取（逆序拼接）
+        macid = (
+            payload[strstart - 2:strstart] +       # 第14-16字符
+            payload[strstart - 4:strstart - 2] +   # 第12-14字符
+            payload[strstart - 6:strstart - 4] +   # 第10-12字符
+            payload[strstart - 8:strstart - 6] +    # 第8-10字符
+            payload[strstart - 10:strstart - 8] +   # 第6-8字符
+            payload[strstart - 12:strstart - 10]   # 第4-6字符
+        )
+        customdata = payload[strstart:strstart+customdatalen]  
+        
+        # RSSI计算（补码转换）
+        rssi = (int(
+            payload[strstart + customdatalen + 2:strstart + customdatalen + 4] +
+            payload[strstart + customdatalen:strstart + customdatalen + 2], 
+            16
+        ) - 256) * 0.5
+        
+        # SNR计算（信噪比）
+        snr = int(
+            payload[strstart + customdatalen + 6:strstart + customdatalen + 8] +
+            payload[strstart + customdatalen + 4:strstart + customdatalen + 6], 
+            16
+        ) / 10
+        
+        # 方位角计算（补正方向）
+        azimuth = int(
+            payload[strstart + customdatalen + 10:strstart + customdatalen + 12] +
+            payload[strstart + customdatalen + 8:strstart + customdatalen + 10], 
+            16
+        ) * 0.5
+        if azimuth != 0:
+            azimuth = 360 - azimuth  # 补正为顺时针角度
+        
+        # 仰角计算（转换为垂直参考）
+        elevation = int(
+            payload[strstart + customdatalen + 14:strstart + customdatalen + 16] +
+            payload[strstart + customdatalen + 12:strstart + customdatalen + 14], 
+            16
+        ) * 0.5
+        elevation = 90 - elevation   # 转换为垂直方向
+        
+        # if azimuth != 0:
+        #     x, y = coordinate_mapping(azimuth, elevation)
+        #     FX, FY = low_pass_filter(x, y)
+        #     distance = calculate_distance(x, y)
+        #     KX, KY = kalman_filter((x, y), macid=macid, is_coordinate=True)
+        #     Kdistance = kalman_filter(distance, macid=macid)
+        # else:
+        #     # 当azimuth为0时设置默认值
+        #     x, y = 0.0, 0.0
+        #     FX, FY = 0.0, 0.0
+        #     distance = 0.0
+        #     KX, KY = 0.0, 0.0
+        #     Kdistance = 0.0
+            
+        return {
+            "macid": macid.upper(),
+            "customdata": customdata,
+            "rssi": round(rssi, 1),
+            "snr": round(snr, 1),
+            "azimuth": round(azimuth, 1),
+            "elevation": round(elevation, 1),
+            # "x": round(x, 2),
+            # "y": round(y, 2),
+            # "FX": round(FX, 2),
+            # "FY": round(FY, 2),
+            # "KX": round(KX, 2),
+            # "KY": round(KY, 2),
+            # "distance": round(distance, 2),  # 确保始终包含distance字段
+            # "Kdistance": round(Kdistance, 2)
+        }
+
+    except Exception as e:
+        print(f"解析错误: {str(e)}")
+        return None
+
+if __name__ == "__main__":
+    pass
