@@ -34,4 +34,5 @@ dist/
 # Temp files
 *.swp
 *.swo
-temp*
+# 在文件末尾追加
+.env

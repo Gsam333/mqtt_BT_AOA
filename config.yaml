@@ -1,8 +1,8 @@
 mqtt:
-  broker: "www.prosensing.top"
-  port: 11882
-  username: "bleAoAecho"
-  password: "Prosensing#2023"
+  broker: "${MQTT_BROKER}"
+  port: "${MQTT_PORT}" 
+  username: "${MQTT_USER}"
+  password: "${MQTT_PASSWORD}"
   topic: "topic/aoatest"
 
 database:
