@@ -1,6 +1,9 @@
-# 显示全部窗口（默认）
-python parseAoAstr_0525.py
-# 仅显示距离窗口
-python parseAoAstr_0525.py --show-distance
-# 组合显示原始和滤波窗口
-python parseAoAstr_0525.py --show-raw --show-filter
+### v0.1 (2025-06-15)
+  - 初始版本发布
+  - 实现蓝牙AOA数据解析基础功能
+  - 集成MQTT消息订阅模块
+
+### v0.2 (2025-06-17)
+  - 新增卡尔曼滤波等优化函数
+  - 新增plot画图函数，数据可视化
+  - 探讨mqtt心跳检测机制，采用MQTT协议Keep Alive功能，因空payload无法调用on_message回调函数

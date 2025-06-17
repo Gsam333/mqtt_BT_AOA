@@ -24,7 +24,8 @@ args = parser.parse_args()
 
 # MQTT代理的地址和端口
 mqtt_topic = "topic/aoatest"
-mqtt_broker = "www.prosensing.top"
+# mqtt_broker = "www.prosensing.top"
+mqtt_broker = "mqtt.3kniu.cn"
 mqtt_port = 11882
 mqtt_username = "bleAoAecho"
 mqtt_password = "Prosensing#2023"

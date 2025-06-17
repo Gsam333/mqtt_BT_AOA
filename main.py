@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 # from parseAoAstr_0525 import mqtt_run
-from src.data_optimization.optimization import *  # 显式导入特定函数
+from src.data_optimization import *  
 import yaml
 from src.mqtt.subscriber import MQTTSubscriber
 
@@ -20,5 +19,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    hello()  # 调用导入的函数
+
     
