@@ -36,3 +36,4 @@ dist/
 *.swo
 # 在文件末尾追加
 config.yaml
+/test/

@@ -1,3 +1,24 @@
+from src.data_optimization.coordinate_mapping import coordinate_mapping, calculate_distance
+from src.data_optimization.low_pass_filter import low_pass_filter
+from src.data_optimization.kalman_filter import kalman_filter
+import time
+
+# 新增全局计数器
+_missing_count = 0
+_MAX_MISSING = 10
+
+def get_heartbeat_status(payload):
+    global _missing_count
+    
+    if payload and payload.startswith('AoA_usps hb='):
+        _missing_count = 0  # 收到心跳包重置计数器
+        print(f"❤️ 心跳包已接收 | 内容: {payload[:20]}")
+        return True
+    elif not payload: # 收到空payload,无法出发on_message回调函数
+        _missing_count += 1
+        print("⚠️ 收到空payload,心跳包丢失计数增加")
+        return False
+
 def getAoAmqtt(payload):
     """
     解析 AOA 数据并返回位置信息。
@@ -20,7 +41,18 @@ def getAoAmqtt(payload):
     MINSNR = 3.0        # 信噪比阈值
     MINRSSI = -85       # 信号强度阈值
     MINANGLE = 20       # 仰角过滤阈值
-    UNDERANGLE = 5      # 仰角补正阈值
+    
+    # if check_heartbeat(payload):
+    #     global _last_hb_time
+    #     _last_hb_time = time.time()
+    #     print(f"❤️ 心跳包已接收 | 内容: {payload[:20]}")
+    #     return None
+    if get_heartbeat_status(payload):
+        # print('missing_count', _missing_count)
+        return None
+    
+    if not payload.startswith('AOA='):
+        return None
 
     try:
         strstart = 16 # 数据起始位置
@@ -31,8 +63,8 @@ def getAoAmqtt(payload):
         if payloadlen != MAXPAYLOADLEN:
             raise ValueError("无效的 payload 长度")
             
-        if not payload.startswith('AOA='):
-            raise ValueError("无效的 AOA 前缀")
+        # if not payload.startswith('AOA='):
+        #     raise ValueError("无效的 AOA 前缀")
 
         customdatalen = 36 + 14  
         
@@ -77,20 +109,20 @@ def getAoAmqtt(payload):
             16
         ) * 0.5
         elevation = 90 - elevation   # 转换为垂直方向
-        
-        # if azimuth != 0:
-        #     x, y = coordinate_mapping(azimuth, elevation)
-        #     FX, FY = low_pass_filter(x, y)
-        #     distance = calculate_distance(x, y)
-        #     KX, KY = kalman_filter((x, y), macid=macid, is_coordinate=True)
-        #     Kdistance = kalman_filter(distance, macid=macid)
-        # else:
-        #     # 当azimuth为0时设置默认值
-        #     x, y = 0.0, 0.0
-        #     FX, FY = 0.0, 0.0
-        #     distance = 0.0
-        #     KX, KY = 0.0, 0.0
-        #     Kdistance = 0.0
+                
+        if azimuth != 0:
+            x, y = coordinate_mapping(azimuth, elevation)                     # 极坐标系映射为笛卡尔坐标系
+            FX, FY = low_pass_filter(x, y)                                    # 低通滤波       
+            distance = calculate_distance(x, y)                               # 计算距离
+            KX, KY = kalman_filter((x, y), macid=macid, is_coordinate=True)   # 卡尔曼滤波
+            Kdistance = kalman_filter(distance, macid=macid)                  # 卡尔曼滤波
+        else:
+            # 当azimuth为0时设置默认值
+            x, y = 0.0, 0.0
+            FX, FY = 0.0, 0.0
+            distance = 0.0
+            KX, KY = 0.0, 0.0
+            Kdistance = 0.0
             
         return {
             "macid": macid.upper(),
@@ -99,14 +131,14 @@ def getAoAmqtt(payload):
             "snr": round(snr, 1),
             "azimuth": round(azimuth, 1),
             "elevation": round(elevation, 1),
-            # "x": round(x, 2),
-            # "y": round(y, 2),
-            # "FX": round(FX, 2),
-            # "FY": round(FY, 2),
-            # "KX": round(KX, 2),
-            # "KY": round(KY, 2),
-            # "distance": round(distance, 2),  # 确保始终包含distance字段
-            # "Kdistance": round(Kdistance, 2)
+            "x": round(x, 2),
+            "y": round(y, 2),
+            "FX": round(FX, 2),
+            "FY": round(FY, 2),
+            "KX": round(KX, 2),
+            "KY": round(KY, 2),
+            "distance": round(distance, 2),  
+            "Kdistance": round(Kdistance, 2)
         }
 
     except Exception as e:
