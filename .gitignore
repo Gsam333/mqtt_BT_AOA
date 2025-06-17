@@ -35,4 +35,4 @@ dist/
 *.swp
 *.swo
 # 在文件末尾追加
-.env
+config.yaml
