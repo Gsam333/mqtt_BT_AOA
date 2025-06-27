@@ -22,11 +22,14 @@ if args.show_raw or args.show_filter or args.show_distance:
         fig3, ax3 = plt.subplots()
         ax3.set_title("Distance Tracking")
 else:
+    # 添加中文字体支持
+    plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']  # Mac系统常用中文字体
+    plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
     fig1, ax1 = plt.subplots()
     fig2, ax2 = plt.subplots()
     fig3, ax3 = plt.subplots()
-    ax1.set_title("Raw Coordinates")
-    ax2.set_title("Filtered Coordinates")
+    ax1.set_title('原始坐标')  
+    ax2.set_title('低通滤波后坐标')  
     ax3.set_title("Distance Tracking")
 lines = {}
 lines2 = {}

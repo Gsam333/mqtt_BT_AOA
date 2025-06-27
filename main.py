@@ -12,6 +12,7 @@ def main():
         subscriber = MQTTSubscriber(config=config['mqtt'])
         print("MQTTSubscriber initialized successfully")
         subscriber.subscribe()
+        # subscriber.check_for_messages() 
         subscriber.run()
     except Exception as e:
         print(f"? MQTT initialization failed: {str(e)}")

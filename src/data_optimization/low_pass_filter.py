@@ -13,3 +13,5 @@ def low_pass_filter(x, y, alfa=0.2):
     preX, preY = FX, FY  # 更新历史值
     return FX, FY
 
+if __name__ == "__main__":
+    pass

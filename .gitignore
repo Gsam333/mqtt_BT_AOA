@@ -37,3 +37,5 @@ dist/
 # 在文件末尾追加
 config.yaml
 /test/
+# 排除旧版解析文件
+parseAoAstr*.py

@@ -11,8 +11,8 @@ import math
 
 def coordinate_mapping(azimuth, elevation, height = 1.5, X=0, Y=0):
     """极坐标系映射为笛卡尔坐标系"""
-    azimuth = 360 - azimuth
-    elevation = 90 - elevation
+    # azimuth = 360 - azimuth
+    # elevation = 90 - elevation
     r = height * math.tan(math.radians(elevation))
     dx = r * math.cos(math.radians(azimuth))
     dy = r * math.sin(math.radians(azimuth))
